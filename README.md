@@ -37,11 +37,10 @@ The following commands can be used to run the script.
 python lim_job_scrapper.py netlinkid netlinkPass term year 
 ```
 
-```bash
-netlinkid and netlinkPass are uvic login information
-term is either [Summer, Spring, or Fall]
-year is 4 digit number, for example 2018
-```
+Where the arguments are:
+* netlinkid and netlinkPass are uvic login information
+* term is either [Summer, Spring, or Fall]
+* year is 4 digit number, for example 2018
 
 #### Future improvements 
 * Adding a summary of results (could be a plot).
