@@ -27,7 +27,8 @@ Output:
 
 Future improvements could include using a jinja template to improve the appearance of the html pages, would need to add css, also searchable/sortable tables would be helpful.
 
-See  [Uvic Job Postings (Jan 01, 2018](https://web.uvic.ca/~lidavid/jobScrapping/LIMScrap/) for sample output.
+See  [Uvic Job Postings (Jan 01, 2018)](https://web.uvic.ca/~lidavid/jobScrapping/LIMScrap/) for sample output.
+
 ### Running the Script
 
 After navigating to the directory of the script and installing the necessary packages (if needed).
