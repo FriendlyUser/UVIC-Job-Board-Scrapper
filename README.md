@@ -33,9 +33,9 @@ See [Uvic Job Postings (Jan 01, 2018)](file:///C:/Users/wu/Downloads/Job%20Hunt/
 After navigating to the directory of the script and installing the necessary packages (if needed).
 The following commands can be used to run the script. 
 
-'''bash
+```bash
 python lim_job_scrapper.py netlinkid netlinkPass term year 
-'''
+```
 
 ```bash
 netlinkid and netlinkPass are uvic login information
