@@ -36,9 +36,9 @@ import re
 
 from nltk.corpus import stopwords
 
-myUsername = sys.argv[1]  # netlinkID is passed in as command line argument
-print('\nHello', myUsername, '\n')
-myPassword = sys.argv[2]  # netlinkID password is passed in as command line argument
+my_username = sys.argv[1]  # netlinkID is passed in as command line argument
+print('Hello', my_username, '\n')
+my_password = sys.argv[2]  # netlinkID password is passed in as command line argument
 
 # Pass in the coopTerm, this is necessary to select the correct term url, to start parsing jobs
 coopTerm = '%s %s' % (sys.argv[3], sys.argv[4]) 
@@ -52,8 +52,8 @@ driver.get('https://learninginmotion.uvic.ca/login/student.htm')
 time.sleep(5) # Let the user actually see something!
 username = driver.find_element_by_name("username")
 password = driver.find_element_by_name("password")
-username.send_keys(myUsername)
-password.send_keys(myPassword)
+username.send_keys(my_username)
+password.send_keys(my_password)
 
 # Click the logon button
 driver.find_element_by_name("Login").click()
@@ -66,26 +66,26 @@ urls = []
 
 #termNumber = 7586 # Fall 2018 is 7585 and Summer 2018 is 7586, Spring 2018 is 7587, must be going with the uvic co-op schedule,
 if sys.argv[3] == "Summer":
-    selectTermNum = 3
+    term_num = 3
 elif sys.argv[3] == "Spring":
-    selectTermNum = 2
+    term_num = 2
 else :
-    selectTermNum = 1 # Fall term
+    term_num = 1 # Fall term
 
 # Grabs the correct url for the selected term
-termPostPath = r'//*[@id="dashboard"]/div[4]/div[1]/div[2]/div/div/a[%d]' % selectTermNum
+term_posting_path = r'//*[@id="dashboard"]/div[4]/div[1]/div[2]/div/div/a[%d]' % term_num
 
 # Since javascript:void(0) is used in many urls on LIM, a script must be executed on the element before proceeding
-copostLink = driver.find_element(By.XPATH, termPostPath)
-driver.execute_script("arguments[0].click();", copostLink)
+copost_link = driver.find_element(By.XPATH, term_posting_path)
+driver.execute_script("arguments[0].click();", copost_link)
 
 ### Base url of job postings, the metadata table contains relative urls from the base_url
 base_url = 'https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm'
 
 # Get links from metadata table about job postings
-table = driver.find_element_by_id('postingsTable')
-tableHTML = table.get_attribute('innerHTML')
-soup = BeautifulSoup('<table>'+tableHTML+'</table>')
+post_table = driver.find_element_by_id('postingsTable')
+post_table_HTML = post_table.get_attribute('innerHTML')
+soup = BeautifulSoup('<table>'+post_table_HTML+'</table>')
 urls = soup.findAll('a')
 
 ### Get only the href field from the urls
@@ -104,13 +104,14 @@ for tag in invalid_tags:
 for tag in soup():
     for attribute in ["class", "id", "name", "style","width", 'span', 'onclick']:
         del tag[attribute]
-htmlOutput = soup.prettify("utf-8") # Clean html output for pandas
+html_output = soup.prettify("utf-8") # Clean html output for pandas
 
 
 ### Create pandas df and remove columns for saving, applying and whetever or not the user applied to a posting.
-pandasHTMLTable = pd.read_html(htmlOutput)
-pandasHTMLTable = pandasHTMLTable[0]
-pandasHTMLTable.drop(pandasHTMLTable.columns[7:9], axis=1, inplace=True)
+
+pandas_table_HTML = pd.read_html(html_output)
+pandas_table_HTML = pandas_table_HTML[0]
+pandas_table_HTML.drop(pandas_table_HTML.columns[7:9], axis=1, inplace=True)
     
 ### Create subfolder for html files
 directory = "html"
@@ -160,8 +161,13 @@ def keywords_f(soup_obj):
     return keywords
 
 job_keywords=[] # create dict to store keyword hits, and urls
+from jinja2 import Template
+jinja_job_template = "../lim_job_posting.template"
 for i in range(len(goodUrls)): # iterative across urls
     get_info = True
+    table1 = ""
+    table2 = ""
+    table3 = ""
     try:
         driver.get(base_url+goodUrls[i]) # Try to get the url
     except TimeoutException:
@@ -176,32 +182,34 @@ for i in range(len(goodUrls)): # iterative across urls
         print('Extracted %d job keywords from posting %d' % (len(single_job),i))
         
         # This should get three tables, one with the job description, one with related disciplines that can apply, and finally organizational information, ie (Amazon)
-        jobDescTable = driver.find_elements_by_class_name("table-bordered");
+        job_desc_table = driver.find_elements_by_class_name("table-bordered");
         # Add tables tags to create proper html
-        table1 = r'<table>'+jobDescTable[0].get_attribute('innerHTML') + r'</table>'
+        table1 = r'<table>'+job_desc_table[0].get_attribute('innerHTML') + r'</table>'
+        table2 = r'<table>'+job_desc_table[1].get_attribute('innerHTML') + r'</table>'
+        table3 =  r'<table>'+job_desc_table[2].get_attribute('innerHTML') + r'</table>'
+        
+        # Print each job posting as an individual job posting, remove tabs and newline characters from the html
         table1 = table1.replace("\t", "").replace("\r", "").replace("\n", "")
-        table2 = jobDescTable[1].get_attribute('innerHTML')
-        table2 = r'<table>'+table2.replace("\t", "").replace("\r", "").replace("\n", "") + r'</table>'
-        table3 =  r'<table>'+jobDescTable[2].get_attribute('innerHTML') + r'</table>'
+        table2 = table2.replace("\t", "").replace("\r", "").replace("\n", "")
         table3 = table3.replace("\t", "").replace("\r", "").replace("\n", "")
+        with open(jinja_job_template) as f:
+            job_tmpl = Template(f.read())
+        f.close()
+        jinja_job_output =job_tmpl.render(
+            JOBPOSTINGTABLE = table1,
+            APPINFO = table2,
+            ORGINFO = table3
+        )
         
         urlString= (base_url+goodUrls[i])
         # Find number in url, re.findall returns a single item list in this case
         jobNum = re.findall(r'\d+', urlString)
-        fileName = 'job%s.html' % jobNum[0] # Create html file with job ID #
-        # Print each job posting as an individual job posting
-        with open(fileName, "wb") as file:
-            # encode tables as bytes
-            table1=table1.encode() 
-            table2=table2.encode()
-            table3=table3.encode()
-            # Write tables to html file
-            file.write(table1)
-            file.write(table2)
-            file.write(table3)
+        job_file_html = 'job%s.html' % jobNum[0] # Create html file with job ID #
+        with open(job_file_html, "wb") as job_post_file:
+            job_post_file.write(jinja_job_output.encode())
         
         ### Apply LIM URL, job keywords and single job relative link
-        job_keywords.append([base_url+goodUrls[i],single_job,fileName])
+        job_keywords.append([base_url+goodUrls[i],single_job,job_file_html])
 
 print('done searching for jobs \n')
 ## Produce the Result dataframe
@@ -213,7 +221,7 @@ for words in skills_dict:
             dict[word]=1
         else:
             dict[word]+=1
-# Calculate the frequency of keywords using a dataframe
+# Calculate the frequency of keywords using a dataframe, consider adding plot or other data, perhaps save a csv and load it using d3
 Result = pd.DataFrame()
 Result['Skill'] = dict.keys()
 Result['Count'] = dict.values()
@@ -229,13 +237,36 @@ job_output['Hyperlinks'] = job_output['Hyperlinks'].apply(lambda x: r'<a href = 
 job_output['Relative Link'] = job_output['Relative Link'].apply(lambda x: r'<a href = "{0}">{0:.25s}</a>'.format(x))
 
 # Create a single dataframe containing metadata from LIM and relative urls, keywords and links back to LIM
-merged_table = job_output.join(pandasHTMLTable)
+merged_table = job_output.join(pandas_table_HTML)
 # create html table that contains link tags (<a> </a>), need escape = False
-outputMergeOutput = merged_table.to_html(buf=None, columns=None, col_space=None, header=True, index=True, na_rep='NaN', formatters=None, float_format=None, sparsify=None, index_names=True, justify='left', bold_rows=True, classes='myTable', escape=False, show_dimensions=True)
+merged_jobinfotable_html = merged_table.to_html(buf=None, columns=None, col_space=None, header=True, index=True, na_rep='NaN', formatters=None, float_format=None, sparsify=None, index_names=True, justify='left', bold_rows=True, classes='myTable', escape=False, show_dimensions=True)
 
+lim_data_Result_csv_file =  r'lim_data_result.csv'
+Result.to_csv(path_or_buf=lim_data_Result_csv_file,index=True)
 # Output final html file, clean up
 with open("outputMetaData.html", "w") as fileMeta:
-    fileMeta.write(outputMergeOutput)
+    fileMeta.write(merged_jobinfotable_html)
+
+# Output metadata table as a html file using a  JINJA Template
+jinja_main_temp = '../lim_metadata.template'
+jinja_main_outfile = 'lim_data.html'
+
+result_table_html = Result.to_html(buf=None, columns=None, col_space=None, header=True, index=True, na_rep='NaN', formatters=None, float_format=None, sparsify=None, index_names=True, justify=None, bold_rows=True, classes=None, escape=True, max_rows=None, max_cols=None, show_dimensions=True, notebook=False) 
+
+with open(jinja_main_temp) as f:
+    tmpl = Template(f.read())
+
+
+jinja_output =tmpl.render(
+    RESULTTABLECSV = lim_data_Result_csv_file,
+    JOBINFO = merged_jobinfotable_html
+)
+f.close()
+
+with open(jinja_main_outfile,'w',encoding='utf-8') as f:
+    f.write(jinja_output)
+    
+f.close()
 
 time.sleep(1) # Let the user actually see something!
 driver.quit()

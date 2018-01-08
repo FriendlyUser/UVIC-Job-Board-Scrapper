@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+	<META http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<head>
+		<link href=  "tables.css" rel="stylesheet" media="screen">
+	</head>
+	
+<body>
+	{{JOBPOSTINGTABLE|safe}}
+	
+	<hr>
+	
+	{{APPINFO|safe}}
+	
+	<hr>
+	
+	{{ORGINFO|safe}}
+</body>
+
+</html>
