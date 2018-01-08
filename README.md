@@ -14,7 +14,7 @@ Summary: Extract metadata from job postings, keywords and save job postings as s
 This program will log into lim using an automated browser, then:
 1. find job postings, 
 2. extract metadata for job Postings.
-3. create a word document
+3. create a main html file containing metadata that is linked to individual job postings.
 
 Arguments passed in:
 1. UVIC netlink ID
