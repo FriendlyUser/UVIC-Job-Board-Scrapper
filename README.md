@@ -44,10 +44,10 @@ Where the arguments are:
 * year is 4 digit number, for example 2018
 
 #### Future improvements 
-* Adding a summary of results (could be a plot).
+* ~~Adding a summary of results (could be a plot).~~
 * Determining if a job is suitable based on keywords.
 * Implementing searching/sortable tables.
-* Improving the appearance of HTML tables by rendering a template (Jinja)
+* ~~Improving the appearance of HTML tables by rendering a template (Jinja)~~
 
 ##### Nice to Have
 * Summarizating the job posting.
