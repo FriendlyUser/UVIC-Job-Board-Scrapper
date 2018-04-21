@@ -1,6 +1,10 @@
 # UVIC-Job-Board-Scrapper
 Extract information from job postings on the uvic job board, learning in motion (LIM).
 
+**Requirements**
+
+1. This program uses selenium to navigate and extract html from webpages, then performs analysis with pandas and nltk.
+2. If anything breaks just add a time.sleep (5) because when I was testing this script, I tested it a lot, and files were stored on the cache, resulting a quicker load time.
 ## Information
 
 | info | value|
