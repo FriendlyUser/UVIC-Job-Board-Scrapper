@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset='UTF-8'>
+	
+	<title>Learning in Motion Job Postings</title>
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<!--[if !IE]><!-->
+	<style>
+	* { 
+	  margin: 0; 
+	  padding: 0; 
+     }
+     body { 
+	   font: 14px/1.4 Georgia, Serif; 
+     }
+    #page-wrap {
+	  margin: 50px;
+    }
+    p {
+	 margin: 20px 0; 
+    }
+
+	/* 
+	Generic Styling, for Desktops/Laptops 
+	*/
+	table { 
+		width: 100%; 
+		border-collapse: collapse; 
+	}
+	/* Zebra striping */
+	tr:nth-of-type(odd) { 
+		background: #eee; 
+	}
+	th { 
+		background: #333; 
+		color: white; 
+		font-weight: bold; 
+		cursor: s-resize;
+		background-repeat: no-repeat;
+        background-position: 3% center;
+	}
+	td, th { 
+		padding: 6px; 
+		border: 1px solid #ccc; 
+		text-align: left; 
+	}
+	
+	th.des:after {
+      content: "\21E9";
+    }
+    
+    th.aes:after {
+      content: "\21E7";
+    }
+	
+	/* 
+	Max width before this PARTICULAR table gets nasty
+	This query will take effect for any screen smaller than 760px
+	and also iPads specifically.
+	*/
+	@media 
+	only screen and (max-width: 760px),
+	(min-device-width: 768px) and (max-device-width: 1024px)  {
+	
+		/* Force table to not be like tables anymore */
+		table, thead, tbody, th, td, tr { 
+			display: block; 
+		}
+		
+		/* Hide table headers (but not display: none;, for accessibility) */
+		thead tr { 
+			position: absolute;
+			top: -9999px;
+			left: -9999px;
+		}
+		
+		tr { border: 1px solid #ccc; }
+		
+		td { 
+			/* Behave  like a "row" */
+			border: none;
+			border-bottom: 1px solid #eee; 
+			position: relative;
+			padding-left: 50%; 
+		}
+		
+		td:before { 
+			/* Now like a table header */
+			position: absolute;
+			/* Top/left values mimic padding */
+			top: 6px;
+			left: 6px;
+			width: 45%; 
+			padding-right: 10px; 
+			white-space: nowrap;
+		}
+		
+		/*
+		Label the data
+		*/
+		td:before {
+		  content: attr(data-th) ": ";
+          font-weight: bold;
+          width: 6.5em;
+          display: inline-block;
+		}
+	}
+	
+	/* Smartphones (portrait and landscape) ----------- */
+	@media only screen
+	and (min-device-width : 320px)
+	and (max-device-width : 480px) {
+		body { 
+			padding: 0; 
+			margin: 0; 
+			width: 320px; }
+		}
+	
+	/* iPads (portrait and landscape) ----------- */
+	@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
+		body { 
+			width: 495px; 
+		}
+	}
+	img {
+		max-width:100%;
+		height:auto;
+	}
+	</style>
+	<!--<![endif]-->
+	<!-- CDN Scripts and stylesheets -->
+    <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-1.12.4.js">
+</script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.15/css/dataTables.jqueryui.min.css"/>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.15/js/dataTables.jqueryui.min.js"></script>
+<!-- Configure DataTables jquery plugin, must use id -->
+<!-- Columns are, Index, Hyperlinks Keywords Relative Link ID Job Title Organization<Position Type Location Applications Application Deadline -->
+
+	<script type="text/javascript" class="init">
+$(document).ready( function () {
+	$('#myTable').DataTable( {
+		paging: true,
+		searching: true,
+		lengthChange: true,
+		info: true,
+		destroy: true,
+		"columnDefs": [
+			{ "type": "num" },
+			{ "type": "html"},
+			{ "type": "string"},
+			{ "type": "num" },
+			{ "type": "string" },
+			{ "type": "string" },
+			{ "type": "string" },
+			{ "type": "string" },
+			{ "type": "num" },
+			{ "type": "date" }
+		]
+	} );
+} );
+	</script>
+</head>
+
+<body>
+
+	<div id="page-wrap">
+	
+	<h3>Learning in Motion Job Posting Results</h3>
+	<p>Click the table header to sort data according to that column</p>
+
+	</div>
+	<script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+	<script type="text/javascript">
+	  d3.csv("lim_data_result.csv", function(error, data) {
+		  if (error) throw error;
+		  
+		  var sortAscending = true;
+		  var table = d3.select('#page-wrap').append('table');
+		  var titles = d3.keys(data[0]);
+		  var headers = table.append('thead').append('tr')
+		                   .selectAll('th')
+		                   .data(titles).enter()
+		                   .append('th')
+		                   .text(function (d) {
+			                    return d;
+		                    })
+		                   .on('click', function (d) {
+		                	   headers.attr('class', 'header');
+		                	   
+		                	   if (sortAscending) {
+		                	     rows.sort(function(a, b) { return b[d] < a[d]; });
+		                	     sortAscending = false;
+		                	     this.className = 'aes';
+		                	   } else {
+		                		 rows.sort(function(a, b) { return b[d] > a[d]; });
+		                		 sortAscending = true;
+		                		 this.className = 'des';
+		                	   }
+		                	   
+		                   });
+		  
+		  var rows = table.append('tbody').selectAll('tr')
+		               .data(data).enter()
+		               .append('tr');
+		  rows.selectAll('td')
+		    .data(function (d) {
+		    	return titles.map(function (k) {
+		    		return { 'value': d[k], 'name': k};
+		    	});
+		    }).enter()
+		    .append('td')
+		    .attr('data-th', function (d) {
+		    	return d.name;
+		    })
+		    .text(function (d) {
+		    	return d.value;
+		    });
+	  });
+	</script>
+	<h6> 
+	<img src = "uvic_job_plot.png" alt="Image generated using matplotlib.">
+	</h6>
+	<h3>Learning in Motion Job Posting Metadata</h3>
+    <table border="1" class="dataframe " id="myTable">
+  <thead>
+    <tr style="text-align: left;">
+      <th></th>
+      <th>Hyperlinks</th>
+      <th>Keywords</th>
+      <th>Relative Link</th>
+      <th>ID</th>
+      <th>Job Title</th>
+      <th>Organization</th>
+      <th>Position Type</th>
+      <th>Location</th>
+      <th>Applications</th>
+      <th>Application Deadline</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160178&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job160178.html">job160178.html</a></td>
+      <td>160178</td>
+      <td>VARIOUS OPG FALL 2018 Student Opportunities - All programs/disciplines</td>
+      <td>Ontario Power Generation</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Ontario</td>
+      <td>2</td>
+      <td>Aug 15, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160267&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job160267.html">job160267.html</a></td>
+      <td>160267</td>
+      <td>Engineering Student Co-op</td>
+      <td>Ralmax Group of Companies</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Sidney, B.C.</td>
+      <td>4</td>
+      <td>Aug 10, 2018 11:59 PM</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=158980&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job158980.html">job158980.html</a></td>
+      <td>158980</td>
+      <td>Various Positions: MaRS Work Integrated Learning Program - Trainer Plus (technical positions)</td>
+      <td>MaRS Discovery District</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Toronto</td>
+      <td>0</td>
+      <td>Jul 2, 2018 09:00 AM</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=158992&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job158992.html">job158992.html</a></td>
+      <td>158992</td>
+      <td>Various Positions: MaRs Work Integrated Learning Program - ecobee (technical positions)</td>
+      <td>MaRS Discovery District</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Toronto</td>
+      <td>0</td>
+      <td>Jul 2, 2018 09:00 AM</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160182&npfGroup=">https://learninginmotion.</a></td>
+      <td>[excel]</td>
+      <td><a href = "job160182.html">job160182.html</a></td>
+      <td>160182</td>
+      <td>Mechanical Engineering Summer Student</td>
+      <td>Nexen Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Calgary</td>
+      <td>0</td>
+      <td>Jun 18, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=159844&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job159844.html">job159844.html</a></td>
+      <td>159844</td>
+      <td>Fall 2018 CSE- Computer Science, Engineering and Math Jobs</td>
+      <td>Communications Security Establishment (CSE)</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Ottawa</td>
+      <td>3</td>
+      <td>Jun 3, 2018 11:59 PM</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160294&npfGroup=">https://learninginmotion.</a></td>
+      <td>[java, python]</td>
+      <td><a href = "job160294.html">job160294.html</a></td>
+      <td>160294</td>
+      <td>Software Development Engineer Co-op/Intern</td>
+      <td>A Thinking Ape Inc.</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>1</td>
+      <td>May 31, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160505&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job160505.html">job160505.html</a></td>
+      <td>160505</td>
+      <td>NEW  Professional Internships</td>
+      <td>SOLS 24/7</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Malaysia</td>
+      <td>0</td>
+      <td>May 31, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160251&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job160251.html">job160251.html</a></td>
+      <td>160251</td>
+      <td>Software Engineering Co-op</td>
+      <td>JSF Technologies</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Victoria</td>
+      <td>4</td>
+      <td>May 25, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=158491&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job158491.html">job158491.html</a></td>
+      <td>158491</td>
+      <td>Project Management Student</td>
+      <td>Centre of Excellence in Next Generation Networks (CENGN)</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Ottawa</td>
+      <td>1</td>
+      <td>May 25, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=158493&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job158493.html">job158493.html</a></td>
+      <td>158493</td>
+      <td>Cloud Services Engineering Student</td>
+      <td>Centre of Excellence in Next Generation Networks (CENGN)</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Ottawa</td>
+      <td>1</td>
+      <td>May 25, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=158494&npfGroup=">https://learninginmotion.</a></td>
+      <td>[java, python]</td>
+      <td><a href = "job158494.html">job158494.html</a></td>
+      <td>158494</td>
+      <td>Cloud Infrastructure Engineering Student</td>
+      <td>Centre of Excellence in Next Generation Networks (CENGN)</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Ottawa</td>
+      <td>0</td>
+      <td>May 25, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160476&npfGroup=">https://learninginmotion.</a></td>
+      <td>[excel]</td>
+      <td><a href = "job160476.html">job160476.html</a></td>
+      <td>160476</td>
+      <td>NEW  #2024 INTERNSHIP IN SERIES PLANNING / BODY SHOP</td>
+      <td>Daimler</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Alabama, the USA</td>
+      <td>0</td>
+      <td>May 24, 2018 11:59 PM</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160477&npfGroup=">https://learninginmotion.</a></td>
+      <td>[excel]</td>
+      <td><a href = "job160477.html">job160477.html</a></td>
+      <td>160477</td>
+      <td>NEW  #2023 INTERNSHIP IN FACTORY PLANNING</td>
+      <td>Daimler</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Alabama, the USA</td>
+      <td>0</td>
+      <td>May 24, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160479&npfGroup=">https://learninginmotion.</a></td>
+      <td>[excel]</td>
+      <td><a href = "job160479.html">job160479.html</a></td>
+      <td>160479</td>
+      <td>NEW  #2016 INTERNSHIP IN COST ENGINEERING AND PURCHASING</td>
+      <td>Daimler</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Alabama, the USA</td>
+      <td>0</td>
+      <td>May 24, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160474&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job160474.html">job160474.html</a></td>
+      <td>160474</td>
+      <td>NEW  Various internship positions</td>
+      <td>Daimler</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Japan</td>
+      <td>1</td>
+      <td>May 24, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160212&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job160212.html">job160212.html</a></td>
+      <td>160212</td>
+      <td>Engineering student</td>
+      <td>PCL Companies</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Winnipeg, Manitoba</td>
+      <td>3</td>
+      <td>May 21, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160213&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job160213.html">job160213.html</a></td>
+      <td>160213</td>
+      <td>Estimating Student</td>
+      <td>PCL Companies</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Winnipeg, Manitoba</td>
+      <td>1</td>
+      <td>May 21, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160214&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job160214.html">job160214.html</a></td>
+      <td>160214</td>
+      <td>Quality Engineering Student</td>
+      <td>PCL Companies</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Winnipeg, Manitoba</td>
+      <td>2</td>
+      <td>May 21, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160408&npfGroup=">https://learninginmotion.</a></td>
+      <td>[c++]</td>
+      <td><a href = "job160408.html">job160408.html</a></td>
+      <td>160408</td>
+      <td>NEW  Firmware Co-op</td>
+      <td>Zaber Technologies Ltd</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>0</td>
+      <td>May 15, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160465&npfGroup=">https://learninginmotion.</a></td>
+      <td>[java, sql, javascript, python]</td>
+      <td><a href = "job160465.html">job160465.html</a></td>
+      <td>160465</td>
+      <td>NEW  Software Developer Co-op</td>
+      <td>J2 Global</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Burnaby</td>
+      <td>1</td>
+      <td>May 10, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160467&npfGroup=">https://learninginmotion.</a></td>
+      <td>[sql, bash, python, perl]</td>
+      <td><a href = "job160467.html">job160467.html</a></td>
+      <td>160467</td>
+      <td>NEW  QA Software Tester Co-op</td>
+      <td>J2 Global</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Burnaby</td>
+      <td>0</td>
+      <td>May 10, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160416&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job160416.html">job160416.html</a></td>
+      <td>160416</td>
+      <td>NEW  Internship within Engineering: ISS Columbus Payload Projects</td>
+      <td>Airbus Group</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Friedrichshafen, Germany</td>
+      <td>1</td>
+      <td>May 8, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160273&npfGroup=">https://learninginmotion.</a></td>
+      <td>[c++, java]</td>
+      <td><a href = "job160273.html">job160273.html</a></td>
+      <td>160273</td>
+      <td>Agile Developer - Performance and Reliability - Analytics Cloud Intern</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>1</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160275&npfGroup=">https://learninginmotion.</a></td>
+      <td>[java, javascript]</td>
+      <td><a href = "job160275.html">job160275.html</a></td>
+      <td>160275</td>
+      <td>Intern - Agile Developer - Analytics Cloud</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>1</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160284&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job160284.html">job160284.html</a></td>
+      <td>160284</td>
+      <td>SAP iXp Intern - CloudOps Engineer - SAP Analytics Cloud</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>1</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>26</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160285&npfGroup=">https://learninginmotion.</a></td>
+      <td>[c++, java, javascript]</td>
+      <td><a href = "job160285.html">job160285.html</a></td>
+      <td>160285</td>
+      <td>SAP iXp Intern - Analytics BI Core Innovation Developer</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>1</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>27</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160287&npfGroup=">https://learninginmotion.</a></td>
+      <td>[python, perl]</td>
+      <td><a href = "job160287.html">job160287.html</a></td>
+      <td>160287</td>
+      <td>SAP iXp Intern - Systems Administrator</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>0</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>28</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160288&npfGroup=">https://learninginmotion.</a></td>
+      <td>[sql, perl, mssql]</td>
+      <td><a href = "job160288.html">job160288.html</a></td>
+      <td>160288</td>
+      <td>SAP iXP Intern - Database Administrator</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>0</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160289&npfGroup=">https://learninginmotion.</a></td>
+      <td>[sql, excel]</td>
+      <td><a href = "job160289.html">job160289.html</a></td>
+      <td>160289</td>
+      <td>SAP iXp Intern - Technical Execution Analytics</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>0</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>30</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160291&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job160291.html">job160291.html</a></td>
+      <td>160291</td>
+      <td>SAP iXp Intern - UX Designer</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>0</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>31</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160292&npfGroup=">https://learninginmotion.</a></td>
+      <td>[sql, java, ruby]</td>
+      <td><a href = "job160292.html">job160292.html</a></td>
+      <td>160292</td>
+      <td>SAP iXp Intern - Jam Extensions and Platform Developer</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>1</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>32</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160295&npfGroup=">https://learninginmotion.</a></td>
+      <td>[sql]</td>
+      <td><a href = "job160295.html">job160295.html</a></td>
+      <td>160295</td>
+      <td>SAP iXp Intern, Project Manager</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>0</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>33</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160297&npfGroup=">https://learninginmotion.</a></td>
+      <td>[]</td>
+      <td><a href = "job160297.html">job160297.html</a></td>
+      <td>160297</td>
+      <td>SAP iXp Intern - Product Marketing Specialist Job</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>0</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>34</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160483&npfGroup=">https://learninginmotion.</a></td>
+      <td>[c++, sql, java, ruby, python, perl, php]</td>
+      <td><a href = "job160483.html">job160483.html</a></td>
+      <td>160483</td>
+      <td>NEW  SAP iXp Intern - Jam Full Stack Web Developer</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>1</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>35</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=160485&npfGroup=">https://learninginmotion.</a></td>
+      <td>[sql, java]</td>
+      <td><a href = "job160485.html">job160485.html</a></td>
+      <td>160485</td>
+      <td>NEW  SAP iXp Intern - Enterprise Analytics - Business Intelligence/ Analytics Developer Job</td>
+      <td>SAP Canada Inc</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Vancouver</td>
+      <td>1</td>
+      <td>May 4, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>36</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=157529&npfGroup=">https://learninginmotion.</a></td>
+      <td>[php]</td>
+      <td><a href = "job157529.html">job157529.html</a></td>
+      <td>157529</td>
+      <td>Research Internships</td>
+      <td>Beihang University Co-op Exchange Program</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>Beijing, China</td>
+      <td>4</td>
+      <td>Apr 27, 2018 10:00 AM</td>
+    </tr>
+    <tr>
+      <th>37</th>
+      <td><a href = "https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm?action=displayPosting&postingId=159974&npfGroup=">https://learninginmotion.</a></td>
+      <td>[php, java, sql, python]</td>
+      <td><a href = "job159974.html">job159974.html</a></td>
+      <td>159974</td>
+      <td>Software Developer - Full Stack</td>
+      <td>University of Victoria</td>
+      <td>Regular Co-op, Full Time</td>
+      <td>UVIC Bookstore</td>
+      <td>1</td>
+      <td>Apr 27, 2018 10:00 AM</td>
+    </tr>
+  </tbody>
+</table>
+<p>38 rows × 10 columns</p>
+</body>
+
+</html>
