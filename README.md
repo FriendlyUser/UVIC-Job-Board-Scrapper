@@ -1,5 +1,6 @@
 # UVIC-Job-Board-Scrapper
 Extract information from job postings on the uvic job board, learning in motion (LIM).
+![File Directory](https://github.com/FriendlyUser/UVIC-Job-Board-Scrapper/master/job_scrap_file_directory.png)
 
 **Requirements**
 
@@ -23,8 +24,7 @@ This program will log into lim using an automated browser, then:
 Arguments passed in:
 1. UVIC netlink ID
 2. UVIC password
-3. Co-op term of interest. For example Summer 
-4. Year for example 2018 (these are merged together)
+3. Co-op term of interest. For example current( i.e, taking classes in the spring, looking for summer co-op), future, past
 
 Output:
     Produces one index.html page containing relative links to individual job postings, keywords and links to the LIM webpage. Requires selenium, BeautifulSoup and pandas. 
@@ -38,14 +38,19 @@ See  [Uvic Job Postings (Jan 01, 2018)](https://web.uvic.ca/~lidavid/jobScrappin
 After navigating to the directory of the script and installing the necessary packages (if needed).
 The following commands can be used to run the script. 
 
+Also, it will count the number of jobs vs the date
+
+|Date       | Num of jobs |
+|----       |             |
+|2018-04-26 | 39          |
+
 ```bash
 python lim_job_scrapper.py netlinkid netlinkPass term year 
 ```
 
 Where the arguments are:
 * netlinkid and netlinkPass are uvic login information
-* term is either [Summer, Spring, or Fall]
-* year is 4 digit number, for example 2018
+* term is either [Current, Future, Past]
 
 #### Future improvements 
 * ~~Adding a summary of results (could be a plot).~~
