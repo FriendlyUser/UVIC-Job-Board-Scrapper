@@ -2,6 +2,7 @@
 Extract information from job postings on the uvic job board, learning in motion (LIM).
 ![File Directory](https://github.com/FriendlyUser/UVIC-Job-Board-Scrapper/blob/master/job_scrap_file_directory.png)
 
+Soon, I will generate a report highlighting statistics of interest, where the jobs are on a map (maybe), saturation, ( maybe use num of jobs/(apps per job*deadline weight +num of jobs), and number of jobs vs date.
 **Requirements**
 
 1. This program uses selenium to navigate and extract html from webpages, then performs analysis with pandas and nltk.
@@ -54,8 +55,8 @@ Where the arguments are:
 
 #### Future improvements 
 * ~~Adding a summary of results (could be a plot).~~
-* Determining if a job is suitable based on keywords.
-* Implementing searching/sortable tables.
+* Determining if a job is suitable based on keywords ( text analysis).
+* ~~Implementing searching/sortable tables.~~
 * ~~Improving the appearance of HTML tables by rendering a template (Jinja)~~
 
 ##### Nice to Have
