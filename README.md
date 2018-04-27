@@ -1,6 +1,6 @@
 # UVIC-Job-Board-Scrapper
 Extract information from job postings on the uvic job board, learning in motion (LIM).
-![File Directory](https://github.com/FriendlyUser/UVIC-Job-Board-Scrapper/master/job_scrap_file_directory.png)
+![File Directory](https://github.com/FriendlyUser/UVIC-Job-Board-Scrapper/blob/master/job_scrap_file_directory.png)
 
 **Requirements**
 
