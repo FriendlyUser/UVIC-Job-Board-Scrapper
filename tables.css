@@ -1,0 +1,93 @@
+/**Tables.css used to style the tables in job postings**/
+
+table {
+  border: 1px solid rgba(0,0,0,0.25);
+  border-collapse: collapse;
+  display: table;
+  empty-cells: hide;
+  margin: 1em 0 2em;
+  padding: 0;
+  table-layout: fixed;
+}
+tbody {
+  display: table-row-group;
+}
+
+table th,table td {
+  font-size: 1.1em;
+  padding: 1em;
+}
+table thead {
+  background: rgba(0,1,1,0.05);
+  border: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid rgba(0,0,0,0.2);
+}
+table tbody {
+  background: rgba(0,0,0,0.05);
+}
+table tfoot {
+    background: rgba(0,0,0,0.15);
+    border: 1px solid rgba(0,0,0,0.15);
+    border-top: 1px solid rgba(0,0,0,0.2);
+}
+table tr:nth-child(odd),table th:nth-child(odd),table td:nth-child(odd) {
+  background: rgba(255,255,255,255);
+  border: 1px solid rgba(0,0,0,0.15);
+}
+table tr:nth-child(even),table td:nth-child(even) {
+  background: rgba(200,200,200,0.25);
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+table tr:nth-child(even) {
+  background: rgba(200, 200, 200, 0.25);
+}
+
+/** Style info blockquote **/
+
+blockquote.info {
+  display:block;
+  background: #fff;
+  padding: 20px 0px 15px 45px;
+  margin: 0 0 20px;
+  position: relative;
+  
+  /*Font*/
+  font-family: Georgia, serif;
+  font-size: 18px;
+  line-height: 1.2;
+  color: #666;
+
+  /*Box Shadow - (Optional)*/
+  -moz-box-shadow: 2px 2px 15px #ccc;
+  -webkit-box-shadow: 2px 2px 15px #ccc;
+  box-shadow: 2px 2px 15px #ccc;
+
+  /*Borders - (Optional)*/
+  border-left-style: solid;
+  border-left-width: 15px;
+  border-right-style: solid;
+  border-right-width: 2px;    
+  border-left-color: #00BFFF;
+  border-right-color: #00BFFF;
+}
+
+blockquote.info::before{
+  content: "\2139"; /*Unicode for Left Double Quote*/
+  
+  /*Font*/
+  font-family: Georgia, serif;
+  font-size: 50px;
+  font-weight: bold;
+  color: #1E90FF;
+  
+  /*Positioning*/
+  position: absolute;
+  left: 10px;
+  top:0px;
+}
+
+blockquote.info::after{
+  /*Reset to make sure*/
+  content: "";
+}

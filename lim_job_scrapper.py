@@ -9,22 +9,29 @@ Summary: Extract metadata from job postings, keywords and save job postings as s
     This program will log into lim using an automated browser, then:
         1. find job postings, 
         2. extract metadata for job Postings.
-        3. create a word document
+        3. create a html document containing all extracted data
     
     Arguments passed in:
         1. UVIC netlink ID
         2. UVIC password
-        3. Co-op term of interest. For example Summer 
-        4. Year for example 2018 (these are merged together)
+        3. Relative term, current(default, looking for co-op in the next term), future(looking for co-op starting a few months later), past
     
+	
     Output:
         Produces one index.html page containing relative links to individual job postings, keywords and links to the LIM webpage. Requires selenium, BeautifulSoup and pandas. 
         
         Future improvements could include using a jinja template to improve the appearance of the html pages, would need to add css, also searchable/sortable tables would be helpful.
 """
 
+# Make sure arguments are passed in
+import sys
+print('Starting Script to scrap uvic job postings')
+if len(sys.argv) < 3:
+	print('pass in more arguments')
+	sys.exit()
+print('Loading Packages')
 # Load packages
-import time,sys
+import time
 from selenium import webdriver
 from bs4 import BeautifulSoup
 
@@ -35,22 +42,20 @@ from selenium.common.exceptions import TimeoutException
 import re
 
 from nltk.corpus import stopwords
-
+print('Reading Arguments')
 my_username = sys.argv[1]  # netlinkID is passed in as command line argument
 print('Hello', my_username, '\n')
 my_password = sys.argv[2]  # netlinkID password is passed in as command line argument
 
 # Pass in the coopTerm, this is necessary to select the correct term url, to start parsing jobs
-coopTerm = '%s %s' % (sys.argv[3], sys.argv[4]) 
-coopTermString = ' ' + coopTerm + r'- all jobs available to you'
-print('Searching for jobs in %s' % coopTerm)
-driver = webdriver.Chrome()  # Optional argument, if not specified will search path.
+print('Searching for jobs in %s term' % sys.argv[3])
+driver = webdriver.Chrome()# Optional argument, if not specified will search path.
 print('Opening browser\n')
 
 # Get the LIM URL and logon
 driver.get('https://learninginmotion.uvic.ca/login/student.htm')
-time.sleep(5) # Let the user actually see something!
-username = driver.find_element_by_name("username")
+time.sleep(7.5) # Let the user actually see something!
+username = driver.find_element_by_name("username") 
 password = driver.find_element_by_name("password")
 username.send_keys(my_username)
 password.send_keys(my_password)
@@ -64,13 +69,13 @@ driver.get('https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm')
 
 urls = []
 
-#termNumber = 7586 # Fall 2018 is 7585 and Summer 2018 is 7586, Spring 2018 is 7587, must be going with the uvic co-op schedule,
-if sys.argv[3] == "Summer":
-    term_num = 3
-elif sys.argv[3] == "Spring":
+# Current, for example if I am taking courses in the spring and seeking co-op in the summer, this is the best option.
+if str.lower(sys.argv[3]) == "current":
+    term_num = 1
+elif str.lower(sys.argv[3]) == "past":
     term_num = 2
 else :
-    term_num = 1 # Fall term
+    term_num = 3 # 8 months away
 
 # Grabs the correct url for the selected term
 term_posting_path = r'//*[@id="dashboard"]/div[4]/div[1]/div[2]/div/div/a[%d]' % term_num
@@ -82,18 +87,22 @@ driver.execute_script("arguments[0].click();", copost_link)
 ### Base url of job postings, the metadata table contains relative urls from the base_url
 base_url = 'https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm'
 
+time.sleep(6)
 # Get links from metadata table about job postings
 post_table = driver.find_element_by_id('postingsTable')
 post_table_HTML = post_table.get_attribute('innerHTML')
-soup = BeautifulSoup('<table>'+post_table_HTML+'</table>')
+soup = BeautifulSoup('<table>'+post_table_HTML+'</table>','lxml')
 urls = soup.findAll('a')
 
 ### Get only the href field from the urls
 urlsTest = [link['href'] for link in urls] 
 ### remove all the 'useless' links, used to save the job posting, apply to it, and sorting.
 goodUrls  = [ x for x in urlsTest if "javascript:void(0)" not in x ]
-removeLinks = 0 # Count number of non-job posting links removed
 
+### append the number of postings to a "txt" file, plot later.
+date = time.strftime("%Y%m%d")
+with open("numofJobs.txt", "a+") as f:
+	f.write("%s,%s \n" % (date, len(goodUrls)))
 ### Clean up html table for pandas dataframe, remove junk attributes and tags
 for a in soup.findAll('a'):
     del a['href']
@@ -112,26 +121,38 @@ html_output = soup.prettify("utf-8") # Clean html output for pandas
 pandas_table_HTML = pd.read_html(html_output)
 pandas_table_HTML = pandas_table_HTML[0]
 pandas_table_HTML.drop(pandas_table_HTML.columns[7:9], axis=1, inplace=True)
-    
-### Create subfolder for html files
-directory = "html"
-if not os.path.exists(directory):
-    os.makedirs(directory)
+
+def create_new_dir(dir_name):
+    """
+    Check if a directory exists, if not create and cd it.
+    """
+    directory = dir_name
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     # go to that new directory
     os.chdir(directory)
-# go to that new directory
-os.chdir(directory)
+
+### Create new directory for term of interest
+create_new_dir('Fall2018')
+
+### Create new directory
+year_month_day = time.strftime("%Y%m%d")
+create_new_dir(year_month_day)
+	
+### Create subfolder for html files
+create_new_dir('html')
 
 #### Get keywords from job postings
 #for this function, thanks to this blog:https://jessesw.com/Data-Science-Skills/ 
-program_languages=['bash','r','python','java','c++','ruby','perl','matlab','javascript','scala','php','julia']
+program_languages=['bash','r','python','java','c++','ruby','perl','matlab','javascript','scala','php','julia','VBA','Power BI']
 analysis_software=['excel','tableau','d3.js','sas','spss','d3','saas','pandas','numpy','scipy','sps','spotfire','scikits.learn','splunk','powerpoint','h2o']
 bigdata_tool=['hadoop','mapreduce','spark','pig','hive','shark','oozie','zookeeper','flume','mahout']
 databases=['sql','nosql','hbase','cassandra','mongodb','mysql','mssql','postgresql','oracle db','rdbms']
-emer_tech = ['C#','C++','JIRA','Confluence']
-
+emer_tech = ['C#','C++','JIRA','Confluence','machine learning']
+game_dev = ['LUA','Sketchup','Unity']
+other_tech = ['QT','Squish','Windows 10','big data','Unstructured Data handling']
 # Produce dictionary of keywords, note that this is not complete
-overall_dict = program_languages + analysis_software + bigdata_tool + databases + emer_tech 
+overall_dict = program_languages + analysis_software + bigdata_tool + databases + emer_tech + game_dev + other_tech
 
 def keywords_f(soup_obj):
     """
@@ -162,7 +183,7 @@ def keywords_f(soup_obj):
 
 job_keywords=[] # create dict to store keyword hits, and urls
 from jinja2 import Template
-jinja_job_template = "../lim_job_posting.template"
+jinja_job_template = "../../../lim_job_posting.template"
 for i in range(len(goodUrls)): # iterative across urls
     get_info = True
     table1 = ""
@@ -173,14 +194,18 @@ for i in range(len(goodUrls)): # iterative across urls
     except TimeoutException:
         get_info = False  # skip this url
         continue
-    time.sleep(1) #waits for a random time so that the website don't consider you as a bot (not applicable?)
+    time.sleep(2) #waits for a random time so that the website don't consider you as a bot (not applicable?)
     if get_info:
         # Get keywords from job posting and append to dataframe, merging will occur later
         soup=BeautifulSoup(driver.page_source,'lxml')
         print('Getting data from %s' % base_url+goodUrls[i])
         single_job = keywords_f(soup)   # extract keywords from posting
-        print('Extracted %d job keywords from posting %d' % (len(single_job),i))
-        
+        try:
+            print('Extracted %d job keywords from posting %d' % (len(single_job),i))
+        except:
+            print('Extracted no keywords from posting %d' % (i))
+            single_job = ""
+        time.sleep(4)
         # This should get three tables, one with the job description, one with related disciplines that can apply, and finally organizational information, ie (Amazon)
         job_desc_table = driver.find_elements_by_class_name("table-bordered");
         # Add tables tags to create proper html
@@ -198,7 +223,8 @@ for i in range(len(goodUrls)): # iterative across urls
         jinja_job_output =job_tmpl.render(
             JOBPOSTINGTABLE = table1,
             APPINFO = table2,
-            ORGINFO = table3
+            ORGINFO = table3,
+            KEYWORDS = single_job
         )
         
         urlString= (base_url+goodUrls[i])
@@ -222,10 +248,10 @@ for words in skills_dict:
         else:
             dict[word]+=1
 # Calculate the frequency of keywords using a dataframe, consider adding plot or other data, perhaps save a csv and load it using d3
-Result = pd.DataFrame()
-Result['Skill'] = dict.keys()
-Result['Count'] = dict.values()
-Result['Ranking'] = Result['Count']/float(len(job_keywords))
+result = pd.DataFrame()
+result['Skill'] = dict.keys()
+result['Count'] = dict.values()
+result['Ranking'] = result['Count']/float(len(job_keywords))
 
 pd.set_option('display.max_colwidth', -1) #display entire column (needed for writing to html file)
 job_output = pd.DataFrame.from_dict(job_keywords,orient='columns') # create dataframe
@@ -240,18 +266,47 @@ job_output['Relative Link'] = job_output['Relative Link'].apply(lambda x: r'<a h
 merged_table = job_output.join(pandas_table_HTML)
 # create html table that contains link tags (<a> </a>), need escape = False
 merged_jobinfotable_html = merged_table.to_html(buf=None, columns=None, col_space=None, header=True, index=True, na_rep='NaN', formatters=None, float_format=None, sparsify=None, index_names=True, justify='left', bold_rows=True, classes='myTable', escape=False, show_dimensions=True)
-
+# Set id using regex, kinda messy I know
+merged_jobinfotable_html = re.sub('myTable', r'" id="myTable',merged_jobinfotable_html)
 lim_data_Result_csv_file =  r'lim_data_result.csv'
-Result.to_csv(path_or_buf=lim_data_Result_csv_file,index=True)
+result.to_csv(path_or_buf=lim_data_Result_csv_file,index=True)
 # Output final html file, clean up
 with open("outputMetaData.html", "w") as fileMeta:
     fileMeta.write(merged_jobinfotable_html)
 
 # Output metadata table as a html file using a  JINJA Template
-jinja_main_temp = '../lim_metadata.template'
+jinja_main_temp = '../../../lim_metadata.template'
 jinja_main_outfile = 'lim_data.html'
 
-result_table_html = Result.to_html(buf=None, columns=None, col_space=None, header=True, index=True, na_rep='NaN', formatters=None, float_format=None, sparsify=None, index_names=True, justify=None, bold_rows=True, classes=None, escape=True, max_rows=None, max_cols=None, show_dimensions=True, notebook=False) 
+result_table_html = result.to_html(buf=None, columns=None, col_space=None, header=True, index=True, na_rep='NaN', formatters=None, float_format=None, sparsify=None, index_names=True, justify=None, bold_rows=True, classes=None, escape=True, max_rows=None, max_cols=None, show_dimensions=True, notebook=False) 
+
+import matplotlib.pyplot as plt
+fig = plt.figure() # Create matplotlib figure
+default_size = fig.get_size_inches()
+ax = fig.add_subplot(111) # Create matplotlib axes
+ax2 = ax.twinx() # Create another axes that shares the same x-axis as ax.
+
+width = 0.4
+result.plot(x=['Skill'], y=['Count'], kind='bar', table=False, yerr=None,ax=ax, width=width, position=1,legend=False)
+result.plot(x=['Skill'], y=['Ranking'], kind='bar',table=False, yerr=None,ax=ax2, width=width, position=0,legend=True)
+
+
+ax.set_ylabel('Count')
+ax2.set_ylabel('Ranking')
+
+### Must save the image before it is shown
+plotname = 'uvic_job_plot' + '.png'
+fig.set_size_inches((default_size[0]*2, default_size[1]*2))
+fig.tight_layout()
+### This should be 2 x 2 times bigger, one 2 for dpi and one 2 for default size
+plt.savefig(plotname, dpi = 200)
+## Consider adding css to limit the image size on the html output
+# Consider adding fig.tight_layout(), to auto adjust image
+## Since Ranking is calculated from Count, only one line is needed.
+
+# fig.set_size_inches(8, 6)
+# fig.tight_layout()
+# plt.show()
 
 with open(jinja_main_temp) as f:
     tmpl = Template(f.read())
@@ -259,7 +314,8 @@ with open(jinja_main_temp) as f:
 
 jinja_output =tmpl.render(
     RESULTTABLECSV = lim_data_Result_csv_file,
-    JOBINFO = merged_jobinfotable_html
+    JOBINFO = merged_jobinfotable_html,
+    MATPLOTLIBPLOT = plotname
 )
 f.close()
 
@@ -268,6 +324,19 @@ with open(jinja_main_outfile,'w',encoding='utf-8') as f:
     
 f.close()
 
+#### Output csv data 
+
+#### go to html folder, and then go to Summer 2018 folder, then create a data folder if it doesn't exist
+os.chdir(os.path.join('', os.pardir))
+os.chdir(os.path.join('', os.pardir))
+
+### Create subfolder for data files
+create_new_dir('data')
+
+import time
+timestr = time.strftime("%Y%m%d")
+job_info_data = r'lim_job_info %s.csv' % timestr 
+merged_table.to_csv(path_or_buf=job_info_data,index=True)
 time.sleep(1) # Let the user actually see something!
 driver.quit()
 ### Could add regex to highlighting COMPUTER ENGINEERING
