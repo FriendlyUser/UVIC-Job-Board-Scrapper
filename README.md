@@ -31,7 +31,11 @@ Arguments passed in:
 Output:
     Produces one index.html page containing relative links to individual job postings, keywords and links to the LIM webpage. Requires selenium, BeautifulSoup and pandas. 
 
-Future improvements could include using a jinja template to improve the appearance of the html pages, would need to add css, also searchable/sortable tables would be helpful.
+As shown in the screenshot below the value of current depends where you are at in the term, for example, at May 2018, current respresents the preceeding term, Fall 2018, but a few weeks ago, we were still at Summer 2018.
+
+![What does current mean](https://github.com/FriendlyUser/UVIC-Job-Board-Scrapper/blob/master/job_scrapper_currentpic.png)
+
+Future improvements could include using a ~~jinja template to improve the appearance of the html pages, would need to add css, also searchable/sortable tables would be helpful.~~
 
 See  [Uvic Job Postings (Jan 01, 2018)](https://web.uvic.ca/~lidavid/jobScrapping/LIMScrap/) for sample output.
 
