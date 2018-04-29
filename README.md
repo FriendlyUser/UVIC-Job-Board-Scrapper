@@ -1,6 +1,7 @@
 # UVIC-Job-Board-Scrapper
 Extract information from job postings on the uvic job board, learning in motion (LIM).
-![File Directory](https://github.com/FriendlyUser/UVIC-Job-Board-Scrapper/blob/master/job_scrap_file_directory.png)
+
+![Script in Action](scripterInAction.gif)
 
 Soon, I will generate a report highlighting statistics of interest, where the jobs are on a map (maybe), saturation, ( maybe use num of jobs/(apps per job*deadline weight +num of jobs), and number of jobs vs date.
 
@@ -39,6 +40,16 @@ Future improvements could include using a ~~jinja template to improve the appear
 
 See  [Uvic Job Postings (Jan 01, 2018)](https://web.uvic.ca/~lidavid/jobScrapping/LIMScrap/) for sample output.
 
+#### Future improvements 
+* ~~Adding a summary of results (could be a plot).~~
+* Determining if a job is suitable based on keywords ( text analysis).
+* ~~Implementing searching/sortable tables.~~
+* ~~Improving the appearance of HTML tables by rendering a template (Jinja)~~
+
+##### Nice to Have
+* Summarizating the job posting.
+* Print out all html files as pdfs.
+
 ### Running the Script
 
 After navigating to the directory of the script and installing the necessary packages (if needed).
@@ -58,12 +69,4 @@ Where the arguments are:
 * netlinkid and netlinkPass are uvic login information
 * term is either [Current, Future, Past]
 
-#### Future improvements 
-* ~~Adding a summary of results (could be a plot).~~
-* Determining if a job is suitable based on keywords ( text analysis).
-* ~~Implementing searching/sortable tables.~~
-* ~~Improving the appearance of HTML tables by rendering a template (Jinja)~~
-
-##### Nice to Have
-* Summarizating the job posting.
-* Print out all html files as pdfs.
+![File Directory](https://github.com/FriendlyUser/UVIC-Job-Board-Scrapper/blob/master/job_scrap_file_directory.png)
