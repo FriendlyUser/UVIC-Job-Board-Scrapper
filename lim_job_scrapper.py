@@ -64,6 +64,18 @@ password.send_keys(my_password)
 driver.find_element_by_name("form-submit").click()
 time.sleep(2)
 
+# Click the other submit button allowing personal data to be used
+# I suspect using something like selenium requires signing off on information being used every time, i.e no cookies.
+attempts = 0
+while attempts < 3:
+    try:
+        driver.find_element_by_name("_eventId_proceed").click()
+        break
+    except Exception as e:
+        print(e)
+        time.sleep(3)
+        attempts = attempts+1
+
 ## Go to the page with job postings
 driver.get('https://learninginmotion.uvic.ca/myAccount/co-op/postings.htm')
 
