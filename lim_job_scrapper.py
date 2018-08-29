@@ -2,7 +2,7 @@
 """
 
 @author: David Li
-Date: Jan 01, 2018
+Date: Aug 28, 2018
 File Name: lim_job_scrapper.py
 Summary: Extract metadata from job postings, keywords and save job postings as static html pages. Requires the user can access https://learninginmotion.uvic.ca and submitted their "pink slip" see (https://web.uvic.ca/calendar2018-01/undergrad/engineering/co-op.html) for details
 
@@ -61,7 +61,7 @@ username.send_keys(my_username)
 password.send_keys(my_password)
 
 # Click the logon button
-driver.find_element_by_name("Login").click()
+driver.find_element_by_name("form-submit").click()
 time.sleep(2)
 
 ## Go to the page with job postings
